@@ -40,6 +40,7 @@ const CartProvider: React.FC = ({ children }) => {
 
     loadProducts();
   }, []);
+
   const increment = useCallback(
     async id => {
       const newProducts = [...products];
@@ -59,28 +60,26 @@ const CartProvider: React.FC = ({ children }) => {
 
   const decrement = useCallback(
     async id => {
-      const productIndex = products.findIndex(p => p.id === id);
-      let updateProducts = [...products];
-      if (productIndex > -1) {
-        if (products[productIndex].quantity === 1) {
-          updateProducts = products.filter(product => product.id !== id);
-        } else {
-          updateProducts[productIndex].quantity -= 1;
-        }
+      const updatedProducts = products
+        .map(item =>
+          item.id === id && item.quantity > 0
+            ? { ...item, quantity: item.quantity - 1 }
+            : item,
+        )
+        .filter(product => product.quantity > 0);
 
-        setProducts(updateProducts);
-        await AsyncStorage.setItem(
-          '@GoMarketPlace:products',
-          JSON.stringify(updateProducts),
-        );
-      }
+      setProducts(updatedProducts);
+
+      await AsyncStorage.setItem(
+        '@GoMarketPlace:products',
+        JSON.stringify(products),
+      );
     },
     [products],
   );
 
   const addToCart = useCallback(
     async (product: Product) => {
-      // TODO ADD A NEW ITEM TO THE CART
       const productIndex = products.findIndex(p => p.id === product.id);
 
       if (productIndex < 0) {
